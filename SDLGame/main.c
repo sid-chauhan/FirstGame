@@ -1,6 +1,54 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
+int processEvents(SDL_Window* window) {
+
+    int done = 0;
+    SDL_Event event;
+
+
+    // Check for event
+    while(SDL_PollEvent(&event)) {
+        switch(event.type) {
+            case SDL_WINDOWEVENT_CLOSE: {
+                if(window) {
+                    SDL_DestroyWindow(window);
+                    window = NULL;
+                    done = 1;
+                }
+            }
+            break;
+            case SDL_KEYDOWN: {
+                switch(event.key.keysym.sym) {
+                    case SDLK_ESCAPE: done = 1;
+                    break;
+                }
+            }
+            break;
+            case SDL_QUIT: done = 1;
+            break;
+        }
+    }
+    return done;
+}
+
+void doRender(SDL_Renderer* renderer) {
+    // Render display
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+     
+    // clear screen to blue
+    SDL_RenderClear(renderer);
+     
+    // set drawing colour to red
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+     
+    SDL_Rect rect = {350, 250, 100, 100};
+    SDL_RenderFillRect(renderer, &rect);
+     
+    // done drawing, now presenting
+    SDL_RenderPresent(renderer);
+}
+
 int main(int argc, char* argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {                                           // Initialize SDL2
         printf("Error initializing SDL: %s\n", SDL_GetError());
@@ -28,22 +76,19 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+    // Event loop
+    int done = 0;
 
-    // clear screen to blue
-    SDL_RenderClear(renderer);
+    while(!done) {
+        // check for events
+        done = processEvents(window);
 
-    // set drawing colour to red
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        // render display
+        doRender(renderer);
 
-    SDL_Rect rect = {350, 250, 100, 100};
-    SDL_RenderFillRect(renderer, &rect);
-
-    // done drawing, now presenting
-    SDL_RenderPresent(renderer);
-
-    // wait for a while
-    SDL_Delay(3000);
+        // limit fps
+        SDL_Delay(100); 
+    }
 
     // close and destroy window
     SDL_DestroyRenderer(renderer);
