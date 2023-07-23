@@ -1,12 +1,6 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
-
-typedef struct
-{
-    int x, y;
-    int life;
-    char *name;
-} Hero;
+#include <stdlib.h>
 
 int processEvents(SDL_Window *window, Hero *hero)
 {
@@ -41,6 +35,9 @@ int processEvents(SDL_Window *window, Hero *hero)
         }
         case SDL_QUIT:
             done = 1;
+            break;
+
+        default:
             break;
         }
     }
@@ -84,12 +81,78 @@ void doRender(SDL_Renderer *renderer, Hero *hero)
     SDL_RenderPresent(renderer);
 }
 
-Hero createHero()
+typedef struct
 {
-    Hero hero;
-    hero.x = 350;
-    hero.y = 250;
-    hero.life = 0;
+    int x, y;
+    int life;
+    char *name;
+} Hero;
+
+Hero *createHero()
+{
+    Hero *hero = calloc(1, sizeof(hero));
+    hero->x = 350;
+    hero->y = 250;
+    hero->life = 0;
+    return hero;
+}
+
+typedef struct
+{
+    int activated;
+    int x, y;
+} Enemy;
+
+void spawnEnemy(Enemy enemies[], int round)
+{
+    if (rand() % (1000 / round) == 0)
+    {
+        activateEnemies(1, enemies);
+    }
+}
+
+// Future proofing function
+void activateEnemies(int total, Enemy enemies[])
+{
+    int i = 0;
+    int activated = 0;
+    while (activated < total && i < 100)
+    {
+        if (!enemies[i].activated)
+        {
+            activated++;
+            enemies[i].activated = 1;
+            enemies[i].x = rand() % 800;
+            enemies[i].y = rand() % 600;
+        }
+        i++;
+    }
+}
+
+Enemy *createEnemies()
+{
+    Enemy enemies[] = calloc(100, sizeof(Enemy));
+    // I don't think we need this since we're using calloc
+    // for (int i = 0; i < 100; i++)
+    // {
+    //     enemies[i].activated = 0;
+    // }
+    return enemies;
+}
+
+void moveEnemies(Hero *hero, Enemy enemies[], int speed)
+{
+    int xDiff, yDiff;
+    for (int i = 0; i < 100; i++)
+    {
+        if (enemies[i].activated)
+        {
+            xDiff = enemies[i].x - hero->x > 0;
+            yDiff = enemies[i].y - hero->y > 0;
+            enemies[i].x += speed * (xDiff > 0);
+            enemies[i].y += speed * (yDiff > 0);
+        }
+    }
 }
 
 int main(int argc, char *argv[])
@@ -99,8 +162,6 @@ int main(int argc, char *argv[])
         printf("Error initializing SDL: %s\n", SDL_GetError());
         return 1;
     }
-
-    Hero hero = createHero();
 
     SDL_Window *window = SDL_CreateWindow("Game Window",           // window title
                                           SDL_WINDOWPOS_UNDEFINED, // window x position
@@ -125,16 +186,24 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    Hero *hero = createHero();
+    Enemy enemies[] = createEnemies();
+
     // Event loop
     int done = 0;
-
+    int round = 1;
+    int enemySpeed = 10;
     while (!done)
     {
         // check for events
         done = processEvents(window, &hero);
 
+        moveEnemies(hero, enemies, enemySpeed);
+
+        spawnEnemy(enemies, round);
+
         // render display
-        doRender(renderer, &hero);
+        doRender(renderer, hero);
 
         // limit fps
         SDL_Delay(10);

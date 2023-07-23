@@ -1,0 +1,12 @@
+Zombie shooter Game
+
+Player
+  - hp
+    - decrement every time hit by 
+  - attacks
+    - gun - shoot bullet at mouse position - left click
+    - slash - short area damage in direction - right click
+
+Enemies
+  - spawn randomly at edge
+  - move towards player
