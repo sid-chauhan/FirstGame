@@ -36,12 +36,6 @@ int processEvents(SDL_Window *window, Hero *hero)
             case SDLK_ESCAPE:
                 done = 1;
                 break;
-            case SDLK_LEFT:
-                hero->x -= 10;
-                break;
-            case SDLK_RIGHT:
-                hero->x += 10;
-                break;
             }
             break;
         }
