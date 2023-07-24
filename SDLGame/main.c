@@ -63,7 +63,7 @@ int processEvents(SDL_Window *window, Hero *hero)
     return done;
 }
 
-void doRender(SDL_Renderer *renderer, Hero *hero)
+void doRender(SDL_Renderer *renderer, Hero *hero, Enemy enemies[])
 {
     // Render display
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
@@ -76,6 +76,18 @@ void doRender(SDL_Renderer *renderer, Hero *hero)
 
     SDL_Rect rect = {hero->x, hero->y, 100, 100};
     SDL_RenderFillRect(renderer, &rect);
+
+    // set drawing colour to green
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+
+    for (int i = 0; i < 100; i++)
+    {
+        if (enemies[i].activated)
+        {
+            SDL_Rect rect = {enemies[i].x, enemies[i].y, 20, 20};
+            SDL_RenderFillRect(renderer, &rect);
+        }
+    }
 
     // done drawing, now presenting
     SDL_RenderPresent(renderer);
@@ -230,7 +242,7 @@ int main(int argc, char *argv[])
         spawnEnemy(enemies, round);
 
         // render display
-        doRender(renderer, hero);
+        doRender(renderer, hero, enemies);
 
         // limit fps
         SDL_Delay(10);
