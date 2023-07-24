@@ -122,8 +122,35 @@ void activateEnemies(int total, Enemy enemies[])
         {
             activated++;
             enemies[i].activated = 1;
-            enemies[i].x = rand() % 800;
-            enemies[i].y = rand() % 600;
+            enum spawnPlace
+            {
+                TOP,
+                BOTTOM,
+                LEFT,
+                RIGHT
+            };
+            switch (rand() % 4)
+            {
+            case TOP:
+                enemies[i].x = rand() % 800;
+                enemies[i].y = 0;
+                break;
+            case BOTTOM:
+                enemies[i].x = rand() % 800;
+                enemies[i].y = 600;
+                break;
+            case LEFT:
+                enemies[i].x = 0;
+                enemies[i].y = rand() % 600;
+                break;
+            case RIGHT:
+                enemies[i].x = 800;
+                enemies[i].y = rand() % 600;
+                break;
+            default:
+                print("Invalid enemy spawn case");
+                return;
+            }
         }
         i++;
     }
