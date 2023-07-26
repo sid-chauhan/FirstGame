@@ -2,6 +2,105 @@
 #include <SDL2/SDL.h>
 #include <stdlib.h>
 
+// Hero class code
+typedef struct
+{
+    int x, y;
+    int life;
+    char *name;
+} Hero;
+
+Hero *createHero()
+{
+    Hero *hero = calloc(1, sizeof(hero));
+    hero->x = 350;
+    hero->y = 250;
+    hero->life = 3;
+    return hero;
+}
+
+// Enemy class code
+typedef struct
+{
+    int activated;
+    int x, y;
+} Enemy;
+
+Enemy *createEnemies(int nEnemies)
+{
+    // Activatied field initialised to 0 using calloc
+    Enemy *enemies = calloc(nEnemies, sizeof(Enemy));
+    return enemies;
+}
+
+// Future proofing function
+void activateEnemies(int total, Enemy *enemies)
+{
+    int i = 0;
+    int activated = 0;
+    while (activated < total && i < 100)
+    {
+        if (!enemies[i].activated)
+        {
+            activated++;
+            enemies[i].activated = 1;
+            enum spawnPlace
+            {
+                TOP,
+                BOTTOM,
+                LEFT,
+                RIGHT
+            };
+            switch (rand() % 4)
+            {
+            case TOP:
+                enemies[i].x = rand() % 800;
+                enemies[i].y = 0;
+                break;
+            case BOTTOM:
+                enemies[i].x = rand() % 800;
+                enemies[i].y = 600;
+                break;
+            case LEFT:
+                enemies[i].x = 0;
+                enemies[i].y = rand() % 600;
+                break;
+            case RIGHT:
+                enemies[i].x = 800;
+                enemies[i].y = rand() % 600;
+                break;
+            default:
+                printf("Invalid enemy spawn case");
+                return;
+            }
+        }
+        i++;
+    }
+}
+
+void spawnEnemy(Enemy *enemies, int round)
+{
+    if (rand() % (120 / round) == 0)
+    {
+        activateEnemies(1, enemies);
+    }
+}
+
+void moveEnemies(Hero *hero, Enemy *enemies, int speed)
+{
+    int xDiff, yDiff;
+    for (int i = 0; i < 100; i++)
+    {
+        if (enemies[i].activated)
+        {
+            xDiff = enemies[i].x - hero->x;
+            yDiff = enemies[i].y - hero->y;
+            enemies[i].x += speed * (xDiff > 0);
+            enemies[i].y += speed * (yDiff > 0);
+        }
+    }
+}
+
 int processEvents(SDL_Window *window, Hero *hero)
 {
 
@@ -69,7 +168,7 @@ int processEvents(SDL_Window *window, Hero *hero)
     return done;
 }
 
-void doRender(SDL_Renderer *renderer, Hero *hero, Enemy enemies[])
+void doRender(SDL_Renderer *renderer, Hero *hero, Enemy *enemies)
 {
     // Render display
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
@@ -97,107 +196,6 @@ void doRender(SDL_Renderer *renderer, Hero *hero, Enemy enemies[])
 
     // done drawing, now presenting
     SDL_RenderPresent(renderer);
-}
-
-typedef struct
-{
-    int x, y;
-    int life;
-    char *name;
-} Hero;
-
-Hero *createHero()
-{
-    Hero *hero = calloc(1, sizeof(hero));
-    hero->x = 350;
-    hero->y = 250;
-    hero->life = 0;
-    return hero;
-}
-
-typedef struct
-{
-    int activated;
-    int x, y;
-} Enemy;
-
-void spawnEnemy(Enemy enemies[], int round)
-{
-    if (rand() % (1000 / round) == 0)
-    {
-        activateEnemies(1, enemies);
-    }
-}
-
-// Future proofing function
-void activateEnemies(int total, Enemy enemies[])
-{
-    int i = 0;
-    int activated = 0;
-    while (activated < total && i < 100)
-    {
-        if (!enemies[i].activated)
-        {
-            activated++;
-            enemies[i].activated = 1;
-            enum spawnPlace
-            {
-                TOP,
-                BOTTOM,
-                LEFT,
-                RIGHT
-            };
-            switch (rand() % 4)
-            {
-            case TOP:
-                enemies[i].x = rand() % 800;
-                enemies[i].y = 0;
-                break;
-            case BOTTOM:
-                enemies[i].x = rand() % 800;
-                enemies[i].y = 600;
-                break;
-            case LEFT:
-                enemies[i].x = 0;
-                enemies[i].y = rand() % 600;
-                break;
-            case RIGHT:
-                enemies[i].x = 800;
-                enemies[i].y = rand() % 600;
-                break;
-            default:
-                print("Invalid enemy spawn case");
-                return;
-            }
-        }
-        i++;
-    }
-}
-
-Enemy *createEnemies()
-{
-    Enemy enemies[] = calloc(100, sizeof(Enemy));
-    // I don't think we need this since we're using calloc
-    // for (int i = 0; i < 100; i++)
-    // {
-    //     enemies[i].activated = 0;
-    // }
-    return enemies;
-}
-
-void moveEnemies(Hero *hero, Enemy enemies[], int speed)
-{
-    int xDiff, yDiff;
-    for (int i = 0; i < 100; i++)
-    {
-        if (enemies[i].activated)
-        {
-            xDiff = enemies[i].x - hero->x > 0;
-            yDiff = enemies[i].y - hero->y > 0;
-            enemies[i].x += speed * (xDiff > 0);
-            enemies[i].y += speed * (yDiff > 0);
-        }
-    }
 }
 
 int main(int argc, char *argv[])
@@ -232,7 +230,7 @@ int main(int argc, char *argv[])
     }
 
     Hero *hero = createHero();
-    Enemy enemies[] = createEnemies();
+    Enemy *enemies = createEnemies(100);
 
     // Event loop
     int done = 0;
@@ -241,7 +239,7 @@ int main(int argc, char *argv[])
     while (!done)
     {
         // check for events
-        done = processEvents(window, &hero);
+        done = processEvents(window, hero);
 
         moveEnemies(hero, enemies, enemySpeed);
 
@@ -253,6 +251,10 @@ int main(int argc, char *argv[])
         // limit fps
         SDL_Delay(10);
     }
+
+    // Free all memory structures
+    free(hero);
+    free(enemies);
 
     // close and destroy window
     SDL_DestroyRenderer(renderer);
