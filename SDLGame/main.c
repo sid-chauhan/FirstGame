@@ -95,8 +95,8 @@ void moveEnemies(Hero *hero, Enemy *enemies, int speed)
         {
             xDiff = enemies[i].x - hero->x;
             yDiff = enemies[i].y - hero->y;
-            enemies[i].x += speed * (xDiff > 0) ? -1 : 1;
-            enemies[i].y += speed * (yDiff > 0) ? -1 : 1;
+            enemies[i].x += speed * ((xDiff > 0) ? -1 : 1);
+            enemies[i].y += speed * ((yDiff > 0) ? -1 : 1);
         }
     }
 }
@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
     // Event loop
     int done = 0;
     int round = 1;
-    int enemySpeed = 10;
+    int enemySpeed = 1;
     while (!done)
     {
         // check for events
