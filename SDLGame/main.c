@@ -172,19 +172,16 @@ void doRender(SDL_Renderer *renderer, Hero *hero, Enemy *enemies)
 {
     // Render display
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-
     // clear screen to blue
     SDL_RenderClear(renderer);
 
     // set drawing colour to red
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-
     SDL_Rect rect = {hero->x, hero->y, 100, 100};
     SDL_RenderFillRect(renderer, &rect);
 
     // set drawing colour to green
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-
     for (int i = 0; i < 100; i++)
     {
         if (enemies[i].activated)
