@@ -95,8 +95,8 @@ void moveEnemies(Hero *hero, Enemy *enemies, int speed)
         {
             xDiff = enemies[i].x - hero->x;
             yDiff = enemies[i].y - hero->y;
-            enemies[i].x += speed * (xDiff > 0);
-            enemies[i].y += speed * (yDiff > 0);
+            enemies[i].x += speed * (xDiff > 0) ? -1 : 1;
+            enemies[i].y += speed * (yDiff > 0) ? -1 : 1;
         }
     }
 }
