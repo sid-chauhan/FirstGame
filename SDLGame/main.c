@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <stdlib.h>
 
 #define MAX_ENEMIES 100
@@ -50,6 +51,10 @@ typedef struct
 
     // Enemies
     Enemy *enemy;
+
+    // Images
+    SDL_Texture *sprite;
+
 } GameState;
 
 // Future proofing function
@@ -233,6 +238,10 @@ void doRender(SDL_Renderer *renderer, GameState *game)
     SDL_Rect rect = {hero->x, hero->y, hero->w, hero->h};
     SDL_RenderFillRect(renderer, &rect);
 
+    // draw the sprite
+    SDL_Rect spriteRect = {50, 50, 256, 256};
+    SDL_RenderCopy(renderer, game->sprite, NULL, &spriteRect);
+
     // set drawing colour to green
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
     for (int i = 0; i < MAX_ENEMIES; i++)
@@ -281,9 +290,20 @@ int main(int argc, char *argv[])
 
     Hero *hero = createHero();
     Enemy *enemies = createEnemies(MAX_ENEMIES);
+    SDL_Surface *spriteSurface = NULL;
     GameState game;
     game.hero = hero;
     game.enemy = enemies;
+
+    spriteSurface = IMG_Load("heart_sprite.png");
+    if (spriteSurface == NULL) {
+        printf("Cannot find sprite.\n\n");
+        SDL_Quit();
+        return 1;
+    }
+
+    game.sprite = SDL_CreateTextureFromSurface(renderer, spriteSurface);
+    SDL_FreeSurface(spriteSurface);
 
     // Event loop
     int done = 0;
@@ -308,6 +328,7 @@ int main(int argc, char *argv[])
     // Free all memory structures
     free(hero);
     free(enemies);
+    SDL_DestroyTexture(game.sprite);
 
     // close and destroy window
     SDL_DestroyRenderer(renderer);
