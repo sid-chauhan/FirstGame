@@ -34,9 +34,19 @@ Enemy *createEnemies(int nEnemies)
     return enemies;
 }
 
-// Future proofing function
-void activateEnemies(int total, Enemy *enemies)
+typedef struct
 {
+    // Player
+    Hero *hero;
+
+    // Enemies
+    Enemy *enemy;
+} GameState;
+
+// Future proofing function
+void activateEnemies(int total, GameState *game)
+{
+    Enemy *enemies = game->enemy;
     int i = 0;
     int activated = 0;
     while (activated < total && i < 100)
@@ -79,16 +89,18 @@ void activateEnemies(int total, Enemy *enemies)
     }
 }
 
-void spawnEnemy(Enemy *enemies, int round)
+void spawnEnemy(GameState *game, int round)
 {
     if (rand() % (120 / round) == 0)
     {
-        activateEnemies(1, enemies);
+        activateEnemies(1, game);
     }
 }
 
-void moveEnemies(Hero *hero, Enemy *enemies, int speed)
+void moveEnemies(GameState *game, int speed)
 {
+    Hero *hero = game->hero;
+    Enemy *enemies = game->enemy;
     double xDiff, yDiff;
     for (int i = 0; i < 100; i++)
     {
@@ -107,8 +119,9 @@ void moveEnemies(Hero *hero, Enemy *enemies, int speed)
     }
 }
 
-int processEvents(SDL_Window *window, Hero *hero)
+int processEvents(SDL_Window *window, GameState *game)
 {
+    Hero *hero = game->hero;
 
     int done = 0;
     SDL_Event event;
@@ -169,8 +182,10 @@ int processEvents(SDL_Window *window, Hero *hero)
     return done;
 }
 
-void doRender(SDL_Renderer *renderer, Hero *hero, Enemy *enemies)
+void doRender(SDL_Renderer *renderer, GameState *game)
 {
+    Hero *hero = game->hero;
+    Enemy *enemies = game->enemy;
     // Render display
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
     // clear screen to blue
@@ -218,7 +233,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!renderer)
     {
         printf("Error creating renderer: %s\n", SDL_GetError());
@@ -229,6 +244,9 @@ int main(int argc, char *argv[])
 
     Hero *hero = createHero();
     Enemy *enemies = createEnemies(100);
+    GameState game;
+    game.hero = hero;
+    game.enemy = enemies;
 
     // Event loop
     int done = 0;
@@ -237,14 +255,14 @@ int main(int argc, char *argv[])
     while (!done)
     {
         // check for events
-        done = processEvents(window, hero);
+        done = processEvents(window, &game);
 
-        moveEnemies(hero, enemies, enemySpeed);
+        moveEnemies(&game, enemySpeed);
 
-        spawnEnemy(enemies, round);
+        spawnEnemy(&game, round);
 
         // render display
-        doRender(renderer, hero, enemies);
+        doRender(renderer, &game);
 
         // limit fps
         SDL_Delay(20);
