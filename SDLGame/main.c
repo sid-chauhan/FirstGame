@@ -3,10 +3,17 @@
 #include <SDL2/SDL.h>
 #include <stdlib.h>
 
+#define MAX_ENEMIES 100
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
+
+#define HERO_SIZE 50
+#define ENEMY_SIZE 10
+
 // Hero class code
 typedef struct
 {
-    int x, y;
+    int x, y, w, h;
     int life;
     char *name;
 } Hero;
@@ -16,6 +23,8 @@ Hero *createHero()
     Hero *hero = calloc(1, sizeof(hero));
     hero->x = 350;
     hero->y = 250;
+    hero->w = HERO_SIZE;
+    hero->h = HERO_SIZE;
     hero->life = 3;
     return hero;
 }
@@ -24,7 +33,7 @@ Hero *createHero()
 typedef struct
 {
     int activated;
-    int x, y;
+    int x, y, w, h;
 } Enemy;
 
 Enemy *createEnemies(int nEnemies)
@@ -44,17 +53,19 @@ typedef struct
 } GameState;
 
 // Future proofing function
-void activateEnemies(int total, GameState *game)
+void activateEnemies(int total, GameState *game, int round)
 {
     Enemy *enemies = game->enemy;
     int i = 0;
     int activated = 0;
-    while (activated < total && i < 100)
+    while (activated < total && i < MAX_ENEMIES)
     {
         if (!enemies[i].activated)
         {
             activated++;
             enemies[i].activated = 1;
+            enemies[i].w = round * ENEMY_SIZE;
+            enemies[i].h = round * ENEMY_SIZE;
             enum spawnPlace
             {
                 TOP,
@@ -65,20 +76,20 @@ void activateEnemies(int total, GameState *game)
             switch (rand() % 4)
             {
             case TOP:
-                enemies[i].x = rand() % 800;
+                enemies[i].x = rand() % WINDOW_WIDTH;
                 enemies[i].y = 0;
                 break;
             case BOTTOM:
-                enemies[i].x = rand() % 800;
-                enemies[i].y = 600;
+                enemies[i].x = rand() % WINDOW_WIDTH;
+                enemies[i].y = WINDOW_HEIGHT;
                 break;
             case LEFT:
                 enemies[i].x = 0;
-                enemies[i].y = rand() % 600;
+                enemies[i].y = rand() % WINDOW_HEIGHT;
                 break;
             case RIGHT:
-                enemies[i].x = 800;
-                enemies[i].y = rand() % 600;
+                enemies[i].x = WINDOW_WIDTH;
+                enemies[i].y = rand() % WINDOW_HEIGHT;
                 break;
             default:
                 printf("Invalid enemy spawn case");
@@ -93,8 +104,29 @@ void spawnEnemy(GameState *game, int round)
 {
     if (rand() % (120 / round) == 0)
     {
-        activateEnemies(1, game);
+        activateEnemies(1, game->enemy, round);
     }
+}
+
+
+int checkCollision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
+{
+    int l = x1 > x2 + w2; // Left is right of right
+    int r = x1 + w1 < x2; // Right is left of left
+    int t = y1 > y2 + h2; // Top is below bottom
+    int b = y1 + h2 < y2; // Bottom is below top
+    if (l || r || t || b)
+    {
+        return 0;
+    }
+    return 1;
+}
+
+int pointCollision(int x1, int y1, int x2, int y2, int w2, int h2)
+{
+    int xCheck = x1 < x2 + w2 && x1 > x2;
+    int yCheck = y1 < y2 + h2 && y1 > y2;
+    return xCheck && yCheck;
 }
 
 void moveEnemies(GameState *game, int speed)
@@ -102,18 +134,23 @@ void moveEnemies(GameState *game, int speed)
     Hero *hero = game->hero;
     Enemy *enemies = game->enemy;
     double xDiff, yDiff;
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < MAX_ENEMIES; i++)
     {
         if (enemies[i].activated)
         {
             xDiff = hero->x - enemies[i].x;
             yDiff = hero->y - enemies[i].y;
             double magnitude = sqrt(xDiff * xDiff + yDiff * yDiff);
-            if (magnitude != 0) {
-                double dx = xDiff / magnitude;
+            if (magnitude != 0)
+            {
+                double dx = xDiff / magnitude; // Direction maintained because xDiff used in calc
                 double dy = yDiff / magnitude;
                 enemies[i].x += speed * dx;
                 enemies[i].y += speed * dy;
+            }
+            if (checkCollision(hero->x, hero->y, hero->w, hero->y, enemies[i].x, enemies[i].y, enemies[i].w, enemies[i].h))
+            {
+                enemies[i].activated = 0;
             }
         }
     }
@@ -193,16 +230,16 @@ void doRender(SDL_Renderer *renderer, GameState *game)
 
     // set drawing colour to red
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect rect = {hero->x, hero->y, 100, 100};
+    SDL_Rect rect = {hero->x, hero->y, hero->w, hero->h};
     SDL_RenderFillRect(renderer, &rect);
 
     // set drawing colour to green
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < MAX_ENEMIES; i++)
     {
         if (enemies[i].activated)
         {
-            SDL_Rect rect = {enemies[i].x, enemies[i].y, 20, 20};
+            SDL_Rect rect = {enemies[i].x, enemies[i].y, enemies[i].w, enemies[i].h};
             SDL_RenderFillRect(renderer, &rect);
         }
     }
@@ -222,8 +259,8 @@ int main(int argc, char *argv[])
     SDL_Window *window = SDL_CreateWindow("Game Window",           // window title
                                           SDL_WINDOWPOS_UNDEFINED, // window x position
                                           SDL_WINDOWPOS_UNDEFINED, // window y position
-                                          800,                     // width, in pixels
-                                          600,                     // height, in pixels
+                                          WINDOW_WIDTH,            // width, in pixels
+                                          WINDOW_HEIGHT,           // height, in pixels
                                           SDL_WINDOW_SHOWN         // flags
     );
     if (!window)
@@ -243,10 +280,7 @@ int main(int argc, char *argv[])
     }
 
     Hero *hero = createHero();
-    Enemy *enemies = createEnemies(100);
-    GameState game;
-    game.hero = hero;
-    game.enemy = enemies;
+    Enemy *enemies = createEnemies(MAX_ENEMIES);
 
     // Event loop
     int done = 0;
