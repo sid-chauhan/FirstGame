@@ -2,6 +2,10 @@
 #include <SDL2/SDL.h>
 #include <stdlib.h>
 
+#define MAX_ENEMIES 100
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
+
 // Hero class code
 typedef struct
 {
@@ -38,7 +42,7 @@ void activateEnemies(int total, Enemy *enemies)
 {
     int i = 0;
     int activated = 0;
-    while (activated < total && i < 100)
+    while (activated < total && i < MAX_ENEMIES)
     {
         if (!enemies[i].activated)
         {
@@ -54,20 +58,20 @@ void activateEnemies(int total, Enemy *enemies)
             switch (rand() % 4)
             {
             case TOP:
-                enemies[i].x = rand() % 800;
+                enemies[i].x = rand() % WINDOW_WIDTH;
                 enemies[i].y = 0;
                 break;
             case BOTTOM:
-                enemies[i].x = rand() % 800;
-                enemies[i].y = 600;
+                enemies[i].x = rand() % WINDOW_WIDTH;
+                enemies[i].y = WINDOW_HEIGHT;
                 break;
             case LEFT:
                 enemies[i].x = 0;
-                enemies[i].y = rand() % 600;
+                enemies[i].y = rand() % WINDOW_HEIGHT;
                 break;
             case RIGHT:
-                enemies[i].x = 800;
-                enemies[i].y = rand() % 600;
+                enemies[i].x = WINDOW_WIDTH;
+                enemies[i].y = rand() % WINDOW_HEIGHT;
                 break;
             default:
                 printf("Invalid enemy spawn case");
@@ -89,7 +93,7 @@ void spawnEnemy(Enemy *enemies, int round)
 void moveEnemies(Hero *hero, Enemy *enemies, int speed)
 {
     int xDiff, yDiff;
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < MAX_ENEMIES; i++)
     {
         if (enemies[i].activated)
         {
@@ -182,7 +186,7 @@ void doRender(SDL_Renderer *renderer, Hero *hero, Enemy *enemies)
 
     // set drawing colour to green
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < MAX_ENEMIES; i++)
     {
         if (enemies[i].activated)
         {
@@ -206,8 +210,8 @@ int main(int argc, char *argv[])
     SDL_Window *window = SDL_CreateWindow("Game Window",           // window title
                                           SDL_WINDOWPOS_UNDEFINED, // window x position
                                           SDL_WINDOWPOS_UNDEFINED, // window y position
-                                          800,                     // width, in pixels
-                                          600,                     // height, in pixels
+                                          WINDOW_WIDTH,            // width, in pixels
+                                          WINDOW_HEIGHT,           // height, in pixels
                                           SDL_WINDOW_SHOWN         // flags
     );
     if (!window)
@@ -227,7 +231,7 @@ int main(int argc, char *argv[])
     }
 
     Hero *hero = createHero();
-    Enemy *enemies = createEnemies(100);
+    Enemy *enemies = createEnemies(MAX_ENEMIES);
 
     // Event loop
     int done = 0;
