@@ -98,6 +98,19 @@ void spawnEnemy(Enemy *enemies, int round)
     }
 }
 
+int checkCollision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
+{
+    int l = x1 > x2 + w2; // Left is right of right
+    int r = x1 + w1 < x2; // Right is left of left
+    int t = y1 > y2 + h2; // Top is below bottom
+    int b = y1 + h2 < y2; // Bottom is below top
+    if (l || r || t || b)
+    {
+        return 0;
+    }
+    return 1;
+}
+
 void moveEnemies(Hero *hero, Enemy *enemies, int speed)
 {
     double xDiff, yDiff;
@@ -121,19 +134,6 @@ void moveEnemies(Hero *hero, Enemy *enemies, int speed)
             }
         }
     }
-}
-
-int checkCollision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
-{
-    int l = x1 > x2 + w2; // Left is right of right
-    int r = x1 + w1 < x2; // Right is left of left
-    int t = y1 > y2 + h2; // Top is below bottom
-    int b = y1 + h2 < y2; // Bottom is below top
-    if (l || r || t || b)
-    {
-        return 0;
-    }
-    return 1;
 }
 
 int processEvents(SDL_Window *window, Hero *hero)
