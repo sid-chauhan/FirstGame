@@ -104,7 +104,7 @@ void spawnEnemy(GameState *game, int round)
 {
     if (rand() % (120 / round) == 0)
     {
-        activateEnemies(1, game->enemy, round);
+        activateEnemies(1, game, round);
     }
 }
 
@@ -281,6 +281,9 @@ int main(int argc, char *argv[])
 
     Hero *hero = createHero();
     Enemy *enemies = createEnemies(MAX_ENEMIES);
+    GameState game;
+    game.hero = hero;
+    game.enemy = enemies;
 
     // Event loop
     int done = 0;
