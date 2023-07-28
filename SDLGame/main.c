@@ -110,10 +110,14 @@ void moveEnemies(Hero *hero, Enemy *enemies, int speed)
             double magnitude = sqrt(xDiff * xDiff + yDiff * yDiff);
             if (magnitude != 0)
             {
-                double dx = xDiff / magnitude;
+                double dx = xDiff / magnitude; // Direction maintained because xDiff used in calc
                 double dy = yDiff / magnitude;
                 enemies[i].x += speed * dx;
                 enemies[i].y += speed * dy;
+            }
+            if (checkCollision(hero->x, hero->y, hero->w, hero->y, enemies[i].x, enemies[i].y, enemies[i].w, enemies[i].h))
+            {
+                enemies[i].activated = 0;
             }
         }
     }
