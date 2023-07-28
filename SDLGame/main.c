@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include <SDL2/SDL.h>
 #include <stdlib.h>
 
@@ -92,15 +93,21 @@ void spawnEnemy(Enemy *enemies, int round)
 
 void moveEnemies(Hero *hero, Enemy *enemies, int speed)
 {
-    int xDiff, yDiff;
+    double xDiff, yDiff;
     for (int i = 0; i < MAX_ENEMIES; i++)
     {
         if (enemies[i].activated)
         {
-            xDiff = enemies[i].x - hero->x;
-            yDiff = enemies[i].y - hero->y;
-            enemies[i].x += speed * ((xDiff > 0) ? -1 : 1);
-            enemies[i].y += speed * ((yDiff > 0) ? -1 : 1);
+            xDiff = hero->x - enemies[i].x;
+            yDiff = hero->y - enemies[i].y;
+            double magnitude = sqrt(xDiff * xDiff + yDiff * yDiff);
+            if (magnitude != 0)
+            {
+                double dx = xDiff / magnitude;
+                double dy = yDiff / magnitude;
+                enemies[i].x += speed * dx;
+                enemies[i].y += speed * dy;
+            }
         }
     }
 }
@@ -133,12 +140,6 @@ int processEvents(SDL_Window *window, Hero *hero)
             case SDLK_ESCAPE:
                 done = 1;
                 break;
-            case SDLK_LEFT:
-                hero->x -= 10;
-                break;
-            case SDLK_RIGHT:
-                hero->x += 10;
-                break;
             }
             break;
         }
@@ -152,21 +153,22 @@ int processEvents(SDL_Window *window, Hero *hero)
     }
 
     const Uint8 *state = SDL_GetKeyboardState(NULL);
+    double heroSpeed = 20;
     if (state[SDL_SCANCODE_LEFT])
     {
-        hero->x -= 10;
+        hero->x -= heroSpeed;
     }
     if (state[SDL_SCANCODE_RIGHT])
     {
-        hero->x += 10;
+        hero->x += heroSpeed;
     }
     if (state[SDL_SCANCODE_UP])
     {
-        hero->y -= 10;
+        hero->y -= heroSpeed;
     }
     if (state[SDL_SCANCODE_DOWN])
     {
-        hero->y += 10;
+        hero->y += heroSpeed;
     }
 
     return done;
@@ -236,7 +238,7 @@ int main(int argc, char *argv[])
     // Event loop
     int done = 0;
     int round = 1;
-    int enemySpeed = 1;
+    int enemySpeed = 10;
     while (!done)
     {
         // check for events
@@ -250,7 +252,7 @@ int main(int argc, char *argv[])
         doRender(renderer, hero, enemies);
 
         // limit fps
-        SDL_Delay(10);
+        SDL_Delay(20);
     }
 
     // Free all memory structures
