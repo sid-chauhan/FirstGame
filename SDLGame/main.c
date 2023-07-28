@@ -7,10 +7,13 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
+#define HERO_SIZE 50
+#define ENEMY_SIZE 10
+
 // Hero class code
 typedef struct
 {
-    int x, y;
+    int x, y, w, h;
     int life;
     char *name;
 } Hero;
@@ -20,6 +23,8 @@ Hero *createHero()
     Hero *hero = calloc(1, sizeof(hero));
     hero->x = 350;
     hero->y = 250;
+    hero->w = HERO_SIZE;
+    hero->h = HERO_SIZE;
     hero->life = 3;
     return hero;
 }
@@ -28,7 +33,7 @@ Hero *createHero()
 typedef struct
 {
     int activated;
-    int x, y;
+    int x, y, w, h;
 } Enemy;
 
 Enemy *createEnemies(int nEnemies)
@@ -39,7 +44,7 @@ Enemy *createEnemies(int nEnemies)
 }
 
 // Future proofing function
-void activateEnemies(int total, Enemy *enemies)
+void activateEnemies(int total, Enemy *enemies, int round)
 {
     int i = 0;
     int activated = 0;
@@ -49,6 +54,8 @@ void activateEnemies(int total, Enemy *enemies)
         {
             activated++;
             enemies[i].activated = 1;
+            enemies[i].w = round * ENEMY_SIZE;
+            enemies[i].h = round * ENEMY_SIZE;
             enum spawnPlace
             {
                 TOP,
@@ -87,7 +94,7 @@ void spawnEnemy(Enemy *enemies, int round)
 {
     if (rand() % (120 / round) == 0)
     {
-        activateEnemies(1, enemies);
+        activateEnemies(1, enemies, round);
     }
 }
 
@@ -110,6 +117,19 @@ void moveEnemies(Hero *hero, Enemy *enemies, int speed)
             }
         }
     }
+}
+
+int checkCollision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
+{
+    int l = x1 > x2 + w2; // Left is right of right
+    int r = x1 + w1 < x2; // Right is left of left
+    int t = y1 > y2 + h2; // Top is below bottom
+    int b = y1 + h2 < y2; // Bottom is below top
+    if (l || r || t || b)
+    {
+        return 0;
+    }
+    return 1;
 }
 
 int processEvents(SDL_Window *window, Hero *hero)
@@ -183,7 +203,7 @@ void doRender(SDL_Renderer *renderer, Hero *hero, Enemy *enemies)
 
     // set drawing colour to red
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect rect = {hero->x, hero->y, 100, 100};
+    SDL_Rect rect = {hero->x, hero->y, hero->w, hero->h};
     SDL_RenderFillRect(renderer, &rect);
 
     // set drawing colour to green
@@ -192,7 +212,7 @@ void doRender(SDL_Renderer *renderer, Hero *hero, Enemy *enemies)
     {
         if (enemies[i].activated)
         {
-            SDL_Rect rect = {enemies[i].x, enemies[i].y, 20, 20};
+            SDL_Rect rect = {enemies[i].x, enemies[i].y, enemies[i].w, enemies[i].h};
             SDL_RenderFillRect(renderer, &rect);
         }
     }
