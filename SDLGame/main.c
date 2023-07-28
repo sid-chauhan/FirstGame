@@ -111,6 +111,13 @@ int checkCollision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h
     return 1;
 }
 
+int pointCollision(int x1, int y1, int x2, int y2, int w2, int h2)
+{
+    int xCheck = x1 < x2 + w2 && x1 > x2;
+    int yCheck = y1 < y2 + h2 && y1 > y2;
+    return xCheck && yCheck;
+}
+
 void moveEnemies(Hero *hero, Enemy *enemies, int speed)
 {
     double xDiff, yDiff;
