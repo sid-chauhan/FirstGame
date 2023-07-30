@@ -30,6 +30,12 @@ Hero *createHero()
     return hero;
 }
 
+// Image
+typedef struct 
+{
+    int x, y;
+} Image;
+
 // Enemy class code
 typedef struct
 {
@@ -53,9 +59,15 @@ typedef struct
     Enemy *enemy;
 
     // Images
+    Image images[100];
+
+    // Sprites
     SDL_Texture *sprite;
 
 } GameState;
+
+// Load function
+
 
 // Future proofing function
 void activateEnemies(int total, GameState *game, int round)
@@ -235,11 +247,11 @@ void doRender(SDL_Renderer *renderer, GameState *game)
 
     // set drawing colour to red
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect rect = {hero->x, hero->y, hero->w, hero->h};
-    SDL_RenderFillRect(renderer, &rect);
+    // SDL_Rect rect = {hero->x, hero->y, hero->w, hero->h};
+    // SDL_RenderFillRect(renderer, &rect);
 
     // draw the sprite
-    SDL_Rect spriteRect = {50, 50, 256, 256};
+    SDL_Rect spriteRect = {hero->x, hero->y, hero->w, hero->h};
     SDL_RenderCopy(renderer, game->sprite, NULL, &spriteRect);
 
     // set drawing colour to green
