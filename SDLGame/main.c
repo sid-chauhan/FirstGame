@@ -31,7 +31,7 @@ Hero *createHero()
 }
 
 // Image
-typedef struct 
+typedef struct
 {
     int x, y;
 } Image;
@@ -52,6 +52,7 @@ Enemy *createEnemies(int nEnemies)
 
 typedef struct
 {
+    int active;
     // Player
     Hero *hero;
 
@@ -67,7 +68,6 @@ typedef struct
 } GameState;
 
 // Load function
-
 
 // Future proofing function
 void activateEnemies(int total, GameState *game, int round)
@@ -125,7 +125,6 @@ void spawnEnemy(GameState *game, int round)
     }
 }
 
-
 int checkCollision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
 {
     int l = x1 > x2 + w2; // Left is right of right
@@ -144,6 +143,15 @@ int pointCollision(int x1, int y1, int x2, int y2, int w2, int h2)
     int xCheck = x1 < x2 + w2 && x1 > x2;
     int yCheck = y1 < y2 + h2 && y1 > y2;
     return xCheck && yCheck;
+}
+
+void collisionOccured(GameState *game)
+{
+    Hero *hero = game->hero;
+    if (--hero->life < 1)
+    {
+        game->active = 0;
+    }
 }
 
 void moveEnemies(GameState *game, int speed)
@@ -168,6 +176,7 @@ void moveEnemies(GameState *game, int speed)
             if (checkCollision(hero->x, hero->y, hero->w, hero->y, enemies[i].x, enemies[i].y, enemies[i].w, enemies[i].h))
             {
                 enemies[i].activated = 0;
+                collisionOccured(hero);
             }
         }
     }
@@ -308,7 +317,8 @@ int main(int argc, char *argv[])
     game.enemy = enemies;
 
     spriteSurface = IMG_Load("heart_sprite.png");
-    if (spriteSurface == NULL) {
+    if (spriteSurface == NULL)
+    {
         printf("Cannot find sprite.\n\n");
         SDL_Quit();
         return 1;
@@ -321,7 +331,8 @@ int main(int argc, char *argv[])
     int done = 0;
     int round = 1;
     int enemySpeed = 10;
-    while (!done)
+    game.active = 1;
+    while (!done && game.active)
     {
         // check for events
         done = processEvents(window, &game);
